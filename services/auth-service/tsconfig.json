@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "es2017",
+    "outDir": "dist",
+    "incremental": true
+  },
+  "include": ["src", "prisma"],
+  "exclude": ["dist", "node_modules"]
+}

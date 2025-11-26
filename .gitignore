@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+pnpm-lock.yaml
+pnpm-debug.log*
+yarn.lock
+package-lock.json
+
+# Build output
+dist/
+.turbo/
+turbo/
+coverage/
+build/
+
+# Environment & secrets
+.env
+.env.*
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Prisma
+prisma/generated/
+
+# Docker
+*.pid
+*.seed

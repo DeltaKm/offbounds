@@ -1,0 +1,19 @@
+{
+  "name": "offbounds",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint"
+  },
+  "devDependencies": {
+    "turbo": "^2.6.1"
+  },
+  "packageManager": "pnpm@10.23.0"
+}

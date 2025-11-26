@@ -1,0 +1,105 @@
+name: Deploy auth-service
+
+on:
+  push:
+    paths:
+      - 'services/auth-service/**'
+
+env:
+  AWS_REGION: eu-central-1 # aggiorna con la tua region
+  ECR_REGISTRY: 000000000000.dkr.ecr.eu-central-1.amazonaws.com # aggiorna con il tuo registry
+  ECR_REPOSITORY: offbounds/auth-service
+  CONTAINER_NAME: auth-service
+  ECS_CLUSTER: offbounds-cluster
+  ECS_SERVICE: auth-service-service
+  TASK_DEFINITION_FAMILY: auth-service
+
+jobs:
+  deploy:
+    name: Build & Deploy auth-service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          docker build -f services/auth-service/Dockerfile -t "$IMAGE_URI" .
+
+      - name: Push image to ECR
+        run: |
+          docker push "$IMAGE_URI"
+
+      - name: Prepare new task definition revision
+        id: taskdef
+        run: |
+          IMAGE_URI="$IMAGE_URI"
+          aws ecs describe-task-definition \
+            --task-definition "$TASK_DEFINITION_FAMILY" \
+            --query 'taskDefinition' \
+            --output json > task-def.json
+
+          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .deregisteredAt)' task-def.json > task-def.clean.json
+
+          jq --arg IMAGE "$IMAGE_URI" --arg NAME "$CONTAINER_NAME" \
+            '.containerDefinitions |= map(if .name == $NAME then .image = $IMAGE else . end)' \
+            task-def.clean.json > task-def-final.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://task-def-final.json --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "taskDefinitionArn=$NEW_TASK_DEF_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.taskdef.outputs.taskDefinitionArn }}" \
+            --force-new-deployment
+
+      - name: Notify success on Telegram (optional)
+        if: ${{ success() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            MESSAGE="Deploy auth-service riuscito su ref ${GITHUB_REF} (run ${GITHUB_RUN_ID})"
+            curl -s \
+              -X POST \
+              "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              -d text="$MESSAGE"
+          fi
+
+      - name: Notify failure on Telegram (optional)
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            MESSAGE="Deploy auth-service fallito su ref ${GITHUB_REF}. Controlla la run ${GITHUB_RUN_ID}"
+            curl -s \
+              -X POST \
+              "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              -d chat_id="${TELEGRAM_CHAT_ID}" \
+              -d text="$MESSAGE"
+          fi
