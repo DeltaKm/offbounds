@@ -1,5 +1,5 @@
 import { INestApplication, Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { Prisma, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '../config';
 
 @Injectable()
@@ -7,10 +7,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   isConnected = false;
 
   constructor(private readonly config: ConfigService) {
-    if (config.databaseUrl) {
-      process.env.DATABASE_URL = config.databaseUrl;
-    }
     super();
+    if (this.config.databaseUrl) {
+      process.env.DATABASE_URL = this.config.databaseUrl;
+    }
   }
 
   async onModuleInit() {

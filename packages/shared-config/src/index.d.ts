@@ -5,9 +5,7 @@ export declare const baseEnvSchema: z.ZodObject<{
     JWT_ACCESS_SECRET: z.ZodString;
     JWT_REFRESH_SECRET: z.ZodString;
 }, z.core.$strip>;
-type EnvSchema = {
-    safeParse: typeof baseEnvSchema.safeParse;
-};
+type EnvSchema = z.ZodTypeAny;
 export declare const loadEnv: (schema?: EnvSchema) => void;
 export declare const getEnv: (key: string, fallback?: string) => string;
 export {};

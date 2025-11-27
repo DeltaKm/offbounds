@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { z } from 'zod';
-import { baseEnvSchema, loadEnv, getEnv } from '@offbounds/shared-config';
+import { baseEnvSchema, loadEnv, getEnv, z } from '@offbounds/shared-config';
 
 const envSchema = baseEnvSchema.extend({
   ACCESS_TOKEN_TTL: z.string().default("900"),          // 15min

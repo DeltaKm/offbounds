@@ -7,8 +7,8 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
-    "outDir": "dist",
-    "rootDir": "src",
+    "outDir": "./dist",
+    "rootDir": "./src",
     "incremental": true,
     "paths": {
       "@offbounds/shared-config": ["../../packages/shared-config/src"],
@@ -16,5 +16,5 @@
     }
   },
   "include": ["src/**/*", "prisma/**/*"],
-  "exclude": ["dist", "node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

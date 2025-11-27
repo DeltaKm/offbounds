@@ -15,9 +15,7 @@ export const baseEnvSchema = z.object({
 });
 
 
-type EnvSchema = {
-  safeParse: typeof baseEnvSchema.safeParse;
-};
+type EnvSchema = z.ZodTypeAny;
 
 const cachedValues = new Map<string, string>();
 const loadedEnvFiles = new Set<string>();
@@ -85,3 +83,5 @@ export const getEnv = (key: string, fallback?: string) => {
   cachedValues.set(key, value);
   return value;
 };
+
+export { z };
