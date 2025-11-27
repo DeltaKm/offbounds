@@ -4,22 +4,37 @@ import { ConfigService } from '../config';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  isConnected = false;
+
   constructor(private readonly config: ConfigService) {
-    super({
-      datasources: {
-        db: {
-          url: config.databaseUrl,
-        },
-      },
-    } as Prisma.PrismaClientOptions);
+    if (config.databaseUrl) {
+      process.env.DATABASE_URL = config.databaseUrl;
+    }
+    super();
   }
 
   async onModuleInit() {
-    await this.$connect();
+    if (!this.config.databaseUrl) {
+      console.warn('Postgres DATABASE_URL not provided. Prisma connection skipped.');
+      this.isConnected = false;
+      return;
+    }
+
+    try {
+      await this.$connect();
+      console.log('Postgres connected');
+      this.isConnected = true;
+    } catch (error) {
+      console.error('Postgres NOT connected:', (error as Error).message);
+      this.isConnected = false;
+      // Do not throw to keep the service running without Postgres
+    }
   }
 
   async onModuleDestroy() {
-    await this.$disconnect();
+    if (this.isConnected) {
+      await this.$disconnect();
+    }
   }
 
   async enableShutdownHooks(app: INestApplication) {

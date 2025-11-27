@@ -1,17 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
-import { loadEnv, getEnv } from '@offbounds/shared-config';
+import { baseEnvSchema, loadEnv, getEnv } from '@offbounds/shared-config';
 
-const envSchema = z.object({
-  DATABASE_URL: z.string().url(),
-  JWT_ACCESS_SECRET: z.string().min(16),
-  JWT_REFRESH_SECRET: z.string().min(32),
-  REDIS_URL: z.string(),
-  ACCESS_TOKEN_TTL: z.string().optional(),
-  REFRESH_TOKEN_TTL: z.string().optional(),
-  EMAIL_TOKEN_TTL: z.string().optional(),
-  PASSWORD_RESET_TOKEN_TTL: z.string().optional()
+const envSchema = baseEnvSchema.extend({
+  ACCESS_TOKEN_TTL: z.string().default("900"),          // 15min
+  REFRESH_TOKEN_TTL: z.string().default("2592000"),     // 30 giorni
+  EMAIL_TOKEN_TTL: z.string().default("600"),           // 10 min
+  PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"), // 1 ora
 });
+
+
 
 @Injectable()
 export class ConfigService {
@@ -20,7 +18,7 @@ export class ConfigService {
   }
 
   get databaseUrl() {
-    return getEnv('DATABASE_URL');
+    return this.getOptionalEnv('DATABASE_URL');
   }
 
   get jwtAccessSecret() {
@@ -32,7 +30,7 @@ export class ConfigService {
   }
 
   get redisUrl() {
-    return getEnv('REDIS_URL');
+    return this.getOptionalEnv('REDIS_URL');
   }
 
   get accessTokenTtlSeconds() {
@@ -53,5 +51,13 @@ export class ConfigService {
   get passwordResetTokenTtlSeconds() {
     const value = getEnv('PASSWORD_RESET_TOKEN_TTL', `${60 * 60}`);
     return Number(value);
+  }
+
+  private getOptionalEnv(key: string) {
+    const value = process.env[key];
+    if (!value || value.trim().length === 0) {
+      return undefined;
+    }
+    return value;
   }
 }

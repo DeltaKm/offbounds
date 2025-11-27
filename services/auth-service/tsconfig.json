@@ -8,8 +8,13 @@
     "allowSyntheticDefaultImports": true,
     "target": "es2017",
     "outDir": "dist",
-    "incremental": true
+    "rootDir": "src",
+    "incremental": true,
+    "paths": {
+      "@offbounds/shared-config": ["../../packages/shared-config/src"],
+      "@offbounds/shared-types": ["../../packages/shared-types/src"]
+    }
   },
-  "include": ["src", "prisma"],
+  "include": ["src/**/*", "prisma/**/*"],
   "exclude": ["dist", "node_modules"]
 }

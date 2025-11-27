@@ -6,13 +6,13 @@ on:
       - 'services/auth-service/**'
 
 env:
-  AWS_REGION: eu-central-1 # aggiorna con la tua region
-  ECR_REGISTRY: 000000000000.dkr.ecr.eu-central-1.amazonaws.com # aggiorna con il tuo registry
-  ECR_REPOSITORY: offbounds/auth-service
-  CONTAINER_NAME: auth-service
-  ECS_CLUSTER: offbounds-cluster
-  ECS_SERVICE: auth-service-service
-  TASK_DEFINITION_FAMILY: auth-service
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+  CONTAINER_NAME: ${{ secrets.CONTAINER_NAME }}
+  ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+  TASK_DEFINITION_FAMILY: ${{ secrets.TASK_DEFINITION_FAMILY }}
 
 jobs:
   deploy:
