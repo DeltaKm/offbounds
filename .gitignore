@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-pnpm-lock.yaml
 pnpm-debug.log*
 yarn.lock
 package-lock.json
