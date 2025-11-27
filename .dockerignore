@@ -1,0 +1,28 @@
+# Node modules
+node_modules
+**/node_modules
+
+# Logs
+*.log
+**/*.log
+
+# Build folders
+dist
+**/dist
+
+# Git & CI
+.git
+.github
+.gitignore
+
+# Env files
+.env
+**/.env
+
+# Dockerfiles root
+Dockerfile
+docker-compose.yml
+
+# Turborepo & caches
+.out
+.cache
