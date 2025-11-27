@@ -69,4 +69,3 @@ const getEnv = (key, fallback) => {
     return value;
 };
 exports.getEnv = getEnv;
-//# sourceMappingURL=index.js.map
