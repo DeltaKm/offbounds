@@ -17,6 +17,8 @@ RUN pnpm install --frozen-lockfile
 COPY packages ./packages
 COPY services/auth-service ./services/auth-service
 
+RUN pnpm --filter auth-service prisma:generate
+
 RUN pnpm --filter @offbounds/shared-config build \
     && pnpm --filter @offbounds/shared-types build \
     && pnpm --filter auth-service build
