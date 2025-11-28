@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
@@ -26,11 +25,6 @@ interface AuthenticatedRequest extends Request {
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @Post('register')
-  async register(@Body() dto: RegisterDto, @Req() req: Request) {
-    return this.authService.register(dto, req);
-  }
 
   @Post('login')
   async login(@Body() dto: LoginDto, @Req() req: Request) {

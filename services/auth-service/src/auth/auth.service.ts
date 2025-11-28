@@ -1,6 +1,5 @@
 import {
   BadRequestException,
-  ConflictException,
   HttpException,
   HttpStatus,
   Inject,
@@ -21,7 +20,6 @@ import { RefreshTokenService } from '../tokens/refresh-token.service';
 import { EmailVerificationTokenService } from '../tokens/email-verification-token.service';
 import { PasswordResetTokenService } from '../tokens/password-reset-token.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -54,39 +52,6 @@ export class AuthService {
     private readonly config: ConfigService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
-
-  async register(dto: RegisterDto, req: Request): Promise<AuthResult> {
-    await this.ensureEmailAndUsernameAvailable(dto.email, dto.username);
-
-    const { hash, salt } = await this.hashPassword(dto.password);
-    const user = await this.usersService.createUser({
-      email: dto.email,
-      username: dto.username,
-      passwordHash: hash,
-      passwordSalt: salt,
-    });
-
-    const { token: refreshToken, record } = await this.refreshTokenService.generate(
-      user.auth!.id,
-      this.extractRequestMetadata(req),
-    );
-    const accessToken = this.createAccessToken(user.id, user.email, user.username);
-
-    await this.emailVerificationTokenService.issue(user.auth!.id);
-
-    return {
-      accessToken,
-      refreshToken,
-      expiresIn: this.config.accessTokenTtlSeconds,
-      refreshTokenExpiresAt: record.expiresAt,
-      user: {
-        id: user.id,
-        email: user.email,
-        username: user.username,
-        isEmailVerified: user.auth?.isEmailVerified ?? false,
-      },
-    };
-  }
 
   async login(dto: LoginDto, req: Request): Promise<AuthResult> {
     const ip = this.getRequestIp(req);
@@ -260,20 +225,6 @@ export class AuthService {
   private async clearRateLimit(ip: string) {
     const key = `auth:login:ip:${ip}`;
     await this.redis.del(key);
-  }
-
-  private async ensureEmailAndUsernameAvailable(email: string, username: string) {
-    const [byEmail, byUsername] = await Promise.all([
-      this.usersService.findByEmail(email),
-      this.usersService.findByUsername(username),
-    ]);
-
-    if (byEmail) {
-      throw new ConflictException('Email già registrata');
-    }
-    if (byUsername) {
-      throw new ConflictException('Username già registrato');
-    }
   }
 
   private async resolveUser(identifier: string) {

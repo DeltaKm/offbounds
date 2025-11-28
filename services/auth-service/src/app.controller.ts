@@ -10,13 +10,15 @@ export class AppController {
     @Inject(REDIS_CLIENT) private readonly cache?: RedisWithStatus,
   ) {}
 
-  @Get('health')
+  @Get('auth-health')
   health() {
+    const database = this.prisma?.isConnected ?? false;
+    const redis = this.cache?.isConnected ?? false;
+
     return {
-      status: 'ok',
-      database: this.prisma?.isConnected ?? false,
-      redis: this.cache?.isConnected ?? false,
+      status: database && redis ? 'ok' : 'degraded',
+      database,
+      redis,
     };
   }
 }
-// test push on aws
