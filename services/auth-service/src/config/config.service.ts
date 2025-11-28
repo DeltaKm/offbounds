@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { baseEnvSchema, loadEnv, getEnv, z } from '@offbounds/shared-config';
 
 const envSchema = baseEnvSchema.extend({
-  ACCESS_TOKEN_TTL: z.string().default("900"),          // 15min
-  REFRESH_TOKEN_TTL: z.string().default("2592000"),     // 30 giorni
-  EMAIL_TOKEN_TTL: z.string().default("600"),           // 10 min
-  PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"), // 1 ora
+  ACCESS_TOKEN_TTL: z.string().default("900"),          
+  REFRESH_TOKEN_TTL: z.string().default("2592000"),    
+  EMAIL_TOKEN_TTL: z.string().default("600"),           
+  PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"), 
 });
 
 

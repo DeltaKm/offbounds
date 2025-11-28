@@ -1,0 +1,30 @@
+{
+  "name": "@offbounds/feed-service",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "nest start --watch",
+    "build": "nest build",
+    "start": "node dist/main.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.3.6",
+    "@nestjs/core": "^10.3.6",
+    "@nestjs/mapped-types": "^2.0.4",
+    "@nestjs/platform-express": "^10.3.6",
+    "@offbounds/shared-config": "workspace:*",
+    "@offbounds/shared-types": "workspace:*",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3",
+    "mongoose": "^8.8.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@nestjs/cli": "^10.3.2",
+    "@nestjs/schematics": "^10.2.1",
+    "@types/express": "^5.0.1",
+    "@types/node": "^24.10.1",
+    "typescript": "^5.9.3"
+  }
+}
