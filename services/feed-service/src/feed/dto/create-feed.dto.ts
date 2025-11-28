@@ -1,11 +1,12 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
-import { FeedContentType } from '../feed.constants';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateFeedDto {
   @IsString()
   @IsNotEmpty()
-  contentId!: string;
+  content!: string;
 
-  @IsEnum(FeedContentType)
-  contentType!: FeedContentType;
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  mediaUrls?: string[];
 }
