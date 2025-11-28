@@ -26,6 +26,6 @@ RUN pnpm --workspace-root --filter @offbounds/shared-config build \
 
 WORKDIR /app/services/feed-service
 
-EXPOSE 3002
+EXPOSE 3000
 
 CMD ["node", "dist/main.js"]

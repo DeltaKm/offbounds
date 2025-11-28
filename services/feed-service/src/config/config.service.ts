@@ -3,7 +3,7 @@ import { baseEnvSchema, loadEnv, getEnv, z } from '@offbounds/shared-config';
 
 const envSchema = baseEnvSchema.extend({
   CONTENT_DATABASE_URL: z.string().optional(),
-  PORT: z.string().default('3002'),
+  PORT: z.string().default('3000'),
 });
 
 @Injectable()
@@ -21,6 +21,6 @@ export class ConfigService {
   }
 
   get port(): number {
-    return Number(getEnv('PORT', '3002'));
+    return Number(getEnv('PORT', '3000'));
   }
 }

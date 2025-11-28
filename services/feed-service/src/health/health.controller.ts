@@ -5,7 +5,7 @@ import { DatabaseService } from '../database/database.service';
 export class HealthController {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  @Get('health')
+  @Get('feed-health')
   health() {
     const dbReady = this.databaseService.isDbReady();
 
