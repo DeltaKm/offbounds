@@ -110,8 +110,8 @@ jobs:
       - name: Notify failure on Telegram (optional)
         if: ${{ failure() }}
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.FEED_TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.FEED_TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
             if [ -z "$WORKFLOW_START" ]; then WORKFLOW_START=$(date +%s); fi
