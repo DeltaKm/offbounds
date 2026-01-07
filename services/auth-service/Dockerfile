@@ -10,7 +10,7 @@ WORKDIR /app
 # Copy workspace root files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 
-# Copy package names only (faster install)
+# Copy package names only
 COPY services/auth-service/package.json ./services/auth-service/
 COPY packages/shared-config/package.json ./packages/shared-config/
 COPY packages/shared-types/package.json ./packages/shared-types/
