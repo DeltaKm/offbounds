@@ -225,6 +225,12 @@ importers:
       '@offbounds/shared-types':
         specifier: workspace:*
         version: link:../../packages/shared-types
+      '@prisma/client':
+        specifier: 5.16.1
+        version: 5.16.1(prisma@5.16.1)
+      argon2:
+        specifier: ^0.44.0
+        version: 0.44.0
       class-transformer:
         specifier: ^0.5.1
         version: 0.5.1
@@ -247,6 +253,9 @@ importers:
       '@types/node':
         specifier: ^24.10.1
         version: 24.10.1
+      prisma:
+        specifier: 5.16.1
+        version: 5.16.1
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

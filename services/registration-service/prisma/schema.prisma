@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  auth      UserAuth?
+}
+
+model UserAuth {
+  id                  String                 @id @default(cuid())
+  userId              String                 @unique
+  user                User                   @relation(fields: [userId], references: [id])
+  passwordHash        String
+  passwordSalt        String
+  isEmailVerified     Boolean                @default(false)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  refreshTokens       RefreshToken[]
+  emailTokens         EmailVerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+model RefreshToken {
+  id         String   @id @default(cuid())
+  userAuthId String
+  userAuth   UserAuth @relation(fields: [userAuthId], references: [id])
+  tokenHash  String
+  userAgent  String?
+  ipAddress  String?
+  isRevoked  Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+}
+
+model EmailVerificationToken {
+  id         String   @id @default(cuid())
+  userAuthId String
+  userAuth   UserAuth @relation(fields: [userAuthId], references: [id])
+  tokenHash  String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  userAuthId String
+  userAuth   UserAuth @relation(fields: [userAuthId], references: [id])
+  tokenHash  String
+  expiresAt  DateTime
+  usedAt     DateTime?
+  createdAt  DateTime @default(now())
+}

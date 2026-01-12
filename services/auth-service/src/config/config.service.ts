@@ -6,6 +6,7 @@ const envSchema = baseEnvSchema.extend({
   REFRESH_TOKEN_TTL: z.string().default("2592000"),    
   EMAIL_TOKEN_TTL: z.string().default("600"),           
   PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"), 
+  PORT: z.string().default('3002'),
 });
 
 
@@ -50,6 +51,10 @@ export class ConfigService {
   get passwordResetTokenTtlSeconds() {
     const value = getEnv('PASSWORD_RESET_TOKEN_TTL', `${60 * 60}`);
     return Number(value);
+  }
+
+  get port() {
+    return Number(getEnv('PORT', '3002'));
   }
 
   private getOptionalEnv(key: string) {
