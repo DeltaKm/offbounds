@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import * as argon2 from 'argon2';
 import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
@@ -39,8 +40,8 @@ export class RegistrationService {
         isEmailVerified: user.auth?.isEmailVerified ?? false,
         createdAt: user.createdAt,
       };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    } catch (error: unknown) {
+      if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
         const target = Array.isArray(error.meta?.target) ? error.meta?.target[0] : 'field';
         throw new ConflictException(`${target} already in use`);
       }
