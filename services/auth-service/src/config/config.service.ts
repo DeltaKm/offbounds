@@ -2,11 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { baseEnvSchema, loadEnv, getEnv, z } from '@offbounds/shared-config';
 
 const envSchema = baseEnvSchema.extend({
-  ACCESS_TOKEN_TTL: z.string().default("900"),          
-  REFRESH_TOKEN_TTL: z.string().default("2592000"),    
-  EMAIL_TOKEN_TTL: z.string().default("600"),           
-  PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"), 
+  ACCESS_TOKEN_TTL: z.string().default("900"),
+  REFRESH_TOKEN_TTL: z.string().default("2592000"),
+  EMAIL_TOKEN_TTL: z.string().default("600"),
+  PASSWORD_RESET_TOKEN_TTL: z.string().default("3600"),
   PORT: z.string().default('3002'),
+  REDIS_HOST: z.string().optional(),
+  REDIS_PORT: z.string().optional(),
+  REDIS_DB: z.string().optional(),
+  REDIS_TLS: z.string().optional(),
+  REDIS_PASSWORD: z.string().optional(),
+  REDIS_URL: z.string().optional(), // fallback only
 });
 
 
@@ -31,6 +37,29 @@ export class ConfigService {
 
   get redisUrl() {
     return this.getOptionalEnv('REDIS_URL');
+  }
+
+  get redisHost() {
+    return this.getOptionalEnv('REDIS_HOST');
+  }
+
+  get redisPort(): number | undefined {
+    const value = this.getOptionalEnv('REDIS_PORT');
+    return value ? Number(value) : undefined;
+  }
+
+  get redisDb(): number | undefined {
+    const value = this.getOptionalEnv('REDIS_DB');
+    return value ? Number(value) : undefined;
+  }
+
+  get redisPassword(): string | undefined {
+    return this.getOptionalEnv('REDIS_PASSWORD');
+  }
+
+  get redisUseTls(): boolean {
+    const value = this.getOptionalEnv('REDIS_TLS');
+    return value === 'true';
   }
 
   get accessTokenTtlSeconds() {
