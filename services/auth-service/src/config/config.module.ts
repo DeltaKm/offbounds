@@ -61,14 +61,16 @@ import type { RedisWithStatus } from './config.constants';
           client.isConnected = false;
         });
 
-        try {
-          await client.connect();
-          client.isConnected = true;
-          console.log('Redis connected');
-        } catch (error) {
-          client.isConnected = false;
-          console.error('Redis NOT connected:', (error as Error).message);
-        }
+        client
+          .connect()
+          .then(() => {
+            client.isConnected = true;
+            console.log('Redis connected');
+          })
+          .catch((error) => {
+            client.isConnected = false;
+            console.error('Redis NOT connected:', (error as Error).message);
+          });
 
         return client;
       },

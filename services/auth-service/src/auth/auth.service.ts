@@ -213,18 +213,27 @@ export class AuthService {
 
   private async enforceRateLimit(ip: string) {
     const key = `auth:login:ip:${ip}`;
-    const attempts = await this.redis.incr(key);
-    if (attempts === 1) {
-      await this.redis.expire(key, this.loginAttemptsWindow);
-    }
-    if (attempts > this.loginAttemptsLimit) {
-      throw new HttpException('Troppi tentativi di login. Riprova più tardi.', HttpStatus.TOO_MANY_REQUESTS);
+    try {
+      const attempts = await this.redis.incr(key);
+      if (attempts === 1) {
+        await this.redis.expire(key, this.loginAttemptsWindow);
+      }
+      if (attempts > this.loginAttemptsLimit) {
+        throw new HttpException('Troppi tentativi di login. Riprova più tardi.', HttpStatus.TOO_MANY_REQUESTS);
+      }
+    } catch (error) {
+      // Redis failure should not block login; log and continue without rate limiting
+      console.error('Redis rate limit error:', (error as Error).message);
     }
   }
 
   private async clearRateLimit(ip: string) {
     const key = `auth:login:ip:${ip}`;
-    await this.redis.del(key);
+    try {
+      await this.redis.del(key);
+    } catch (error) {
+      console.error('Redis clear rate limit error:', (error as Error).message);
+    }
   }
 
   private async resolveUser(identifier: string) {

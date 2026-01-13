@@ -10,6 +10,11 @@ export class AppController {
     @Inject(REDIS_CLIENT) private readonly cache?: RedisWithStatus,
   ) {}
 
+  @Get('health')
+  liveness() {
+    return { status: 'ok' };
+  }
+
   @Get('auth-health')
   health() {
     const database = this.prisma?.isConnected ?? false;
