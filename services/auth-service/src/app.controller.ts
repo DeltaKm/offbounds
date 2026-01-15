@@ -27,4 +27,5 @@ export class AppController {
     };
   }
 }
-// da aggiunger il rolling code
+// da fixare la route di health per loggare il problema , l alb da errore di connessione redis o check health errato e fa rollback
+// devo controllare la configurazioen di redis su aws e vedere se comunicano in modo corretto
