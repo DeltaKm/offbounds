@@ -13,7 +13,7 @@ import type { RedisWithStatus } from './config.constants';
     {
       provide: REDIS_CLIENT,
       useFactory: async (config: ConfigService): Promise<RedisWithStatus> => {
-        const redisUrl = config.redisUrl; // fallback only
+        const redisUrl = config.redisUrl; 
         const host = config.redisHost;
         const port = config.redisPort;
         const db = config.redisDb;
