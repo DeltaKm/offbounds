@@ -7,7 +7,6 @@ RUN corepack enable && corepack prepare pnpm@10.23.0 --activate
 
 WORKDIR /app
 
-# Copy workspace root files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
 COPY services/feed-service/package.json ./services/feed-service/package.json
 COPY packages/shared-config/package.json ./packages/shared-config/package.json
@@ -15,11 +14,9 @@ COPY packages/shared-types/package.json ./packages/shared-types/package.json
 
 RUN pnpm install --frozen-lockfile
 
-# Copy sources
 COPY packages ./packages
 COPY services/feed-service ./services/feed-service
 
-# Build dependencies and service
 RUN pnpm --workspace-root --filter @offbounds/shared-config build \
     && pnpm --workspace-root --filter @offbounds/shared-types build \
     && pnpm --workspace-root --filter @offbounds/feed-service build
