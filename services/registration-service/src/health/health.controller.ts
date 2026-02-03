@@ -6,7 +6,6 @@ export class HealthController {
   health() {
     return {
       status: 'ok',
-      db: 'not_configured',
     };
   }
 }
