@@ -3,7 +3,7 @@ import { Controller, Get, Inject } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 import { REDIS_CLIENT, type RedisWithStatus } from './config';
 
-@Controller()
+@Controller('auth')
 export class AppController {
   constructor(
     private readonly prisma: PrismaService,
@@ -15,7 +15,7 @@ export class AppController {
     return { status: 'ok' };
   }
 
-  @Get('auth-health')
+  @Get('health/status')
   health() {
     const database = this.prisma?.isConnected ?? false;
     const redis = this.cache?.isConnected ?? false;

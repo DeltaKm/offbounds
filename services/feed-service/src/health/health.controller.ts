@@ -1,11 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 
-@Controller()
+@Controller('feed')
 export class HealthController {
   constructor(private readonly databaseService: DatabaseService) {}
 
-  @Get('feed-health')
+  @Get('health')
   health() {
     const dbReady = this.databaseService.isDbReady();
 
