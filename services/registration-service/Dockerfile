@@ -20,7 +20,8 @@ COPY packages ./packages
 COPY services/registration-service ./services/registration-service
 
 # Build dependencies and service
-RUN pnpm --workspace-root --filter @offbounds/shared-config build \
+RUN pnpm --workspace-root --filter @offbounds/registration-service prisma:generate \
+    && pnpm --workspace-root --filter @offbounds/shared-config build \
     && pnpm --workspace-root --filter @offbounds/shared-types build \
     && pnpm --workspace-root --filter @offbounds/registration-service build
 
