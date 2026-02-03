@@ -23,6 +23,11 @@ async function bootstrap() {
     }),
   );
 
+  const server = app.getHttpAdapter().getInstance();
+  if (typeof server.printRoutes === 'function') {
+    server.printRoutes();
+  }
+
   const port = Number(process.env.PORT ?? 3000);
   await app.listen({ port, host: '0.0.0.0' });
 }
