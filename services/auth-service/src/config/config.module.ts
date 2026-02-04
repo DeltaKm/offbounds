@@ -22,9 +22,12 @@ import type { RedisWithStatus } from './config.constants';
 
         const baseOptions: RedisOptions = {
           lazyConnect: true,
+          maxRetriesPerRequest: 2,
+          connectTimeout: 3000,
+          retryStrategy: (times) => Math.min(1000 + times * 200, 5000),
           ...(db !== undefined ? { db } : {}),
           ...(password ? { password } : {}),
-          ...(useTls ? { tls: {} } : {}),
+          ...(useTls && host ? { tls: { servername: host } } : useTls ? { tls: {} } : {}),
         };
 
         let client: RedisWithStatus;

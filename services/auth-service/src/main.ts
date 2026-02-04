@@ -16,4 +16,3 @@ async function bootstrap() {
 }
 
 bootstrap();
-// test attach db auth service
