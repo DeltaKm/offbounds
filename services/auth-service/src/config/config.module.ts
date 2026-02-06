@@ -18,6 +18,7 @@ import type { RedisWithStatus } from './config.constants';
         const db = config.redisDb ?? 0;
         const password = config.redisPassword;
         const tlsEnabled = String(process.env.REDIS_TLS).toLowerCase() === 'true';
+        const username = process.env.REDIS_USERNAME ?? (password ? 'AUTH' : undefined);
 
         if (!host) {
           console.warn('Redis host/port not provided. Redis connection skipped.');
@@ -29,9 +30,12 @@ import type { RedisWithStatus } from './config.constants';
         const client = new Redis({
           host,
           port,
+          ...(username ? { username } : {}),
           password,
           db,
-          ...(tlsEnabled ? { tls: { rejectUnauthorized: false } } : {}),
+          ...(tlsEnabled
+            ? { tls: { rejectUnauthorized: false, servername: host } }
+            : {}),
           lazyConnect: true,
           enableReadyCheck: true,
           maxRetriesPerRequest: 1,
