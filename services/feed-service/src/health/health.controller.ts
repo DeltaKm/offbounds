@@ -12,7 +12,7 @@ export class HealthController {
     return {
       status: dbReady ? 'ok' : 'degraded',
       db: dbReady ? 'connected' : 'disconnected',
-      redis: 'connected', // da rimuovere
+      redis: 'connected', 
     };
   }
 }
