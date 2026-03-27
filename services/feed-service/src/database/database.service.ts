@@ -2,6 +2,7 @@ import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/commo
 import mongoose, { Connection, Model, Schema } from 'mongoose';
 import { ConfigService } from '../config/config.service';
 
+// da sincronizzare con gli altri mircoservizi
 const RETRY_DELAY_MS = 5000;
 
 @Injectable()
