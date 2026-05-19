@@ -1,0 +1,48 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Wallet {
+  id           String        @id @default(uuid())
+  userId       String        @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  balances     Balance[]
+  transactions Transaction[]
+
+  @@map("wallets")
+}
+
+model Balance {
+  id       String  @id @default(uuid())
+  walletId String
+  wallet   Wallet  @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  currency String
+  amount   Decimal @db.Decimal(20, 8)
+
+  @@unique([walletId, currency])
+  @@map("balances")
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  walletId  String
+  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type      String
+  currency  String
+  amount    Decimal  @db.Decimal(20, 8)
+  status    String   @default("pending")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([walletId])
+  @@index([status])
+  @@map("transactions")
+}
