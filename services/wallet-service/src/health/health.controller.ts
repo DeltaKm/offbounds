@@ -1,11 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
-@Controller('wallet/health')
+@Controller('wallet')
 export class HealthController {
   constructor(private readonly prisma: PrismaService) {}
 
-  @Get()
+  @Get('health')
   health() {
     const database = this.prisma?.isConnected ?? false;
 
