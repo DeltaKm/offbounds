@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Stream {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String?
+  streamUrl   String
+  thumbnailUrl String?
+  status      String   @default("idle")
+  viewerCount Int      @default(0)
+  startedAt   DateTime?
+  endedAt     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([startedAt])
+}
+
+model StreamViewer {
+  id        String   @id @default(uuid())
+  streamId  String
+  userId    String
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+
+  @@unique([streamId, userId])
+  @@index([streamId])
+  @@index([userId])
+}

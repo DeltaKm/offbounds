@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  userId      String?
+  eventType   String
+  eventName   String
+  properties  Json?
+  timestamp   DateTime @default(now())
+  sessionId   String?
+  userAgent   String?
+  ipAddress   String?
+  referer     String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId, timestamp])
+  @@index([eventType, timestamp])
+  @@index([sessionId])
+}
+
+model UserSession {
+  id          String   @id @default(uuid())
+  userId      String?
+  sessionId   String   @unique
+  startedAt   DateTime @default(now())
+  endedAt     DateTime?
+  duration    Int?
+  pageViews   Int      @default(0)
+  deviceType  String?
+  browser     String?
+  os          String?
+  country     String?
+  city        String?
+
+  @@index([userId])
+  @@index([sessionId])
+}
