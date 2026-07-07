@@ -17,6 +17,7 @@
     "@nestjs/jwt": "^10.0.1",
     "@nestjs/passport": "^10.0.1",
     "@nestjs/platform-express": "^10.3.6",
+    "@offbounds/otp-service": "workspace:*",
     "@offbounds/shared-config": "workspace:*",
     "@offbounds/shared-types": "workspace:*",
     "@prisma/client": "5.16.1",

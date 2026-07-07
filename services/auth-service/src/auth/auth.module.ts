@@ -7,12 +7,14 @@ import { UsersModule } from '../users/users.module';
 import { TokensModule } from '../tokens/tokens.module';
 import { AppConfigModule, ConfigService } from '../config';
 import { JwtAccessStrategy } from './strategies/jwt-access.strategy';
+import { OtpModule } from '@offbounds/otp-service';
 
 @Module({
   imports: [
     AppConfigModule,
     UsersModule,
     TokensModule,
+    OtpModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [AppConfigModule],

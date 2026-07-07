@@ -1,0 +1,24 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OtpCode {
+  id            String   @id @default(cuid())
+  phoneNumber   String
+  codeHash      String
+  purpose       String   // 'registration', 'login', 'password_reset'
+  expiresAt     DateTime
+  usedAt        DateTime?
+  attempts      Int      @default(0)
+  lastAttemptAt DateTime?
+  createdAt     DateTime @default(now())
+
+  @@index([phoneNumber, purpose])
+  @@index([expiresAt])
+}

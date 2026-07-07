@@ -12,13 +12,27 @@ model Media {
   id          String   @id @default(uuid())
   userId      String
   url         String
+  thumbnailUrl String?
   mimeType    String
   size        Int
   filename    String
+  category    String   @default("sfw") // 'sfw', 'artistic', 'explicit'
+  price       Int?     // Stars required to unlock
+  isPaid      Boolean  @default(false)
+  visibility  String   @default("all") // 'all', 'subscribers'
+  expiresAt   DateTime?
+  location    String?
+  hasOtherSubjects Boolean @default(false)
+  consentIds Json?    // Array of consent data for other subjects
+  duration    Int?     // Duration in seconds for videos
+  isShortVideo Boolean @default(false) // True for videos < 5 min 9:16
   metadata    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([userId])
   @@index([createdAt])
+  @@index([category])
+  @@index([visibility])
+  @@index([expiresAt])
 }

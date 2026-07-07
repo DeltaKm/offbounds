@@ -1,10 +1,8 @@
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -17,13 +15,11 @@ import type Redis from 'ioredis';
 import { ConfigService, REDIS_CLIENT } from '../config';
 import { UsersService } from '../users/users.service';
 import { RefreshTokenService } from '../tokens/refresh-token.service';
-import { EmailVerificationTokenService } from '../tokens/email-verification-token.service';
-import { PasswordResetTokenService } from '../tokens/password-reset-token.service';
+import { OtpService } from '@offbounds/otp-service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { SendLoginOtpDto } from './dto/send-login-otp.dto';
+import { VerifyLoginOtpDto } from './dto/verify-login-otp.dto';
 
 export interface AuthResult {
   accessToken: string;
@@ -46,8 +42,7 @@ export class AuthService {
   constructor(
     private readonly usersService: UsersService,
     private readonly refreshTokenService: RefreshTokenService,
-    private readonly emailVerificationTokenService: EmailVerificationTokenService,
-    private readonly passwordResetTokenService: PasswordResetTokenService,
+    private readonly otpService: OtpService,
     private readonly jwtService: JwtService,
     private readonly config: ConfigService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
@@ -139,46 +134,48 @@ export class AuthService {
     };
   }
 
-  async requestEmailVerification(userId: string) {
-    const auth = await this.usersService.findAuthByUserId(userId);
-    if (!auth) {
-      throw new NotFoundException('Utente non trovato');
+  async sendLoginOtp(dto: SendLoginOtpDto) {
+    const user = await this.resolveUser(dto.identifier);
+    if (!user || !user.phoneNumber) {
+      throw new UnauthorizedException('User not found or no phone number');
     }
-    const { token, record } = await this.emailVerificationTokenService.issue(auth.id);
-    return { token, expiresAt: record.expiresAt };
+    await this.otpService.generateOtp(user.phoneNumber, 'login');
+    return { message: 'OTP sent' };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
-    const record = await this.emailVerificationTokenService.validate(dto.token);
-    if (!record) {
-      throw new BadRequestException('Token non valido o scaduto');
-    }
-    await this.emailVerificationTokenService.markUsed(record.id);
-    await this.usersService.markEmailVerified(record.userAuthId);
-    return { success: true };
-  }
-
-  async requestPasswordReset(dto: RequestResetPasswordDto) {
-    const user = await this.usersService.findByEmail(dto.email);
-    if (!user || !user.auth) {
-      return { token: null };
-    }
-    const { token, record } = await this.passwordResetTokenService.issue(user.auth.id);
-    return { token, expiresAt: record.expiresAt };
-  }
-
-  async resetPassword(dto: ResetPasswordDto) {
-    const record = await this.passwordResetTokenService.validate(dto.token);
-    if (!record) {
-      throw new BadRequestException('Token non valido o scaduto');
+  async verifyLoginOtp(dto: VerifyLoginOtpDto, req: Request): Promise<AuthResult> {
+    const user = await this.resolveUser(dto.identifier);
+    if (!user || !user.phoneNumber) {
+      throw new UnauthorizedException('User not found or no phone number');
     }
 
-    const { hash, salt } = await this.hashPassword(dto.newPassword);
-    await this.usersService.updatePassword(record.userAuthId, { passwordHash: hash, passwordSalt: salt });
-    await this.passwordResetTokenService.markUsed(record.id);
-    await this.refreshTokenService.revokeAll(record.userAuthId);
+    const isValid = await this.otpService.validateOtp(user.phoneNumber, dto.code, 'login');
+    if (!isValid) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
 
-    return { success: true };
+    if (!user.auth) {
+      throw new UnauthorizedException('User auth not found');
+    }
+
+    const { token: refreshToken, record } = await this.refreshTokenService.generate(
+      user.auth.id,
+      this.extractRequestMetadata(req),
+    );
+    const accessToken = this.createAccessToken(user.id, user.email, user.username);
+
+    return {
+      accessToken,
+      refreshToken,
+      expiresIn: this.config.accessTokenTtlSeconds,
+      refreshTokenExpiresAt: record.expiresAt,
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        isEmailVerified: user.auth.isEmailVerified,
+      },
+    };
   }
 
   private createAccessToken(userId: string, email: string, username: string) {

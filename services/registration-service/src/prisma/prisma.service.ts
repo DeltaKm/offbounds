@@ -7,16 +7,17 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   private isConnected = false;
 
   constructor(private readonly config: ConfigService) {
-    super();
-    const databaseUrl = this.config.databaseUrl;
-    if (databaseUrl) {
-      process.env.DATABASE_URL = databaseUrl;
-    }
+    super({
+      datasources: {
+        db: {
+          url: config.databaseUrl,
+        },
+      },
+    });
   }
 
   async onModuleInit() {
-    const databaseUrl = this.config.databaseUrl;
-    if (!databaseUrl) {
+    if (!this.config.databaseUrl) {
       console.warn('Postgres DATABASE_URL not provided. Prisma connection skipped.');
       this.isConnected = false;
       return;

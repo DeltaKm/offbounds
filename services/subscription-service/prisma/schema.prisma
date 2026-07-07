@@ -1,0 +1,47 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Subscription {
+  id             String   @id @default(cuid())
+  subscriberId   String
+  creatorId      String
+  tier           String   @default("standard") // 'standard', 'premium', 'vip'
+  price          Int      // Stars per month
+  status         String   @default("active") // 'active', 'cancelled', 'expired'
+  startDate      DateTime @default(now())
+  endDate        DateTime
+  autoRenew      Boolean  @default(true)
+  cancelledAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@unique([subscriberId, creatorId])
+  @@index([subscriberId])
+  @@index([creatorId])
+  @@index([status])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+model SubscriptionTier {
+  id          String   @id @default(cuid())
+  creatorId   String
+  name        String
+  price       Int      // Stars per month
+  benefits    Json?    // Array of benefit descriptions
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([creatorId, name])
+  @@index([creatorId])
+  @@map("subscription_tiers")
+}

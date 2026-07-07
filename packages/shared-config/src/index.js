@@ -1,14 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEnv = exports.loadEnv = exports.baseEnvSchema = void 0;
+exports.z = exports.getEnv = exports.loadEnv = exports.baseEnvSchema = void 0;
 const dotenv_1 = require("dotenv");
 const find_up_1 = require("find-up");
 const zod_1 = require("zod");
+Object.defineProperty(exports, "z", { enumerable: true, get: function () { return zod_1.z; } });
 exports.baseEnvSchema = zod_1.z.object({
     DATABASE_URL: zod_1.z.string().optional(),
     REDIS_URL: zod_1.z.string().optional(),
     JWT_ACCESS_SECRET: zod_1.z.string().min(16),
     JWT_REFRESH_SECRET: zod_1.z.string().min(32),
+    ACCESS_TOKEN_TTL: zod_1.z.string().default("900"),
+    REFRESH_TOKEN_TTL: zod_1.z.string().default("604800"),
+    EMAIL_TOKEN_TTL: zod_1.z.string().default("600"),
+    PASSWORD_RESET_TOKEN_TTL: zod_1.z.string().default("600"),
 });
 const cachedValues = new Map();
 const loadedEnvFiles = new Set();
@@ -30,6 +35,7 @@ const bootstrapEnvFiles = () => {
             loadedEnvFiles.add(filePath);
         }
     };
+    // Load files
     loadFile('.env');
     if (process.env.NODE_ENV)
         loadFile(`.env.${process.env.NODE_ENV}`, true);
@@ -58,10 +64,9 @@ const loadEnv = (schema) => {
 };
 exports.loadEnv = loadEnv;
 const getEnv = (key, fallback) => {
-    var _a;
     if (cachedValues.has(key))
         return cachedValues.get(key);
-    const value = (_a = process.env[key]) !== null && _a !== void 0 ? _a : fallback;
+    const value = process.env[key] ?? fallback;
     if (value === undefined) {
         throw new Error(`Missing environment variable: ${key}`);
     }
@@ -69,3 +74,4 @@ const getEnv = (key, fallback) => {
     return value;
 };
 exports.getEnv = getEnv;
+//# sourceMappingURL=index.js.map

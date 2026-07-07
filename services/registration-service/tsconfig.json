@@ -1,18 +1,16 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "removeComments": true,
-    "emitDecoratorMetadata": true,
-    "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2017",
     "outDir": "./dist",
     "rootDir": "./src",
-    "incremental": true,
+    "baseUrl": "./",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strictPropertyInitialization": false,
     "paths": {
-      "@offbounds/shared-config": ["../../packages/shared-config/src"],
-      "@offbounds/shared-types": ["../../packages/shared-types/src"]
+      "@/*": ["src/*"],
+      "@prisma/client": ["./node_modules/.prisma/client"],
+      "@offbounds/otp-service": ["../../services/otp-service/dist"]
     }
   },
   "include": ["src/**/*"],

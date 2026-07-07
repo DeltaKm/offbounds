@@ -12,9 +12,8 @@ import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { RequestResetPasswordDto } from './dto/request-reset-password.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { VerifyEmailDto } from './dto/verify-email.dto';
+import { SendLoginOtpDto } from './dto/send-login-otp.dto';
+import { VerifyLoginOtpDto } from './dto/verify-login-otp.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TokenPayload } from '@offbounds/shared-types';
 
@@ -25,6 +24,16 @@ interface AuthenticatedRequest extends Request {
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
+
+  @Post('login/send-otp')
+  async sendLoginOtp(@Body() dto: SendLoginOtpDto) {
+    return this.authService.sendLoginOtp(dto);
+  }
+
+  @Post('login/verify-otp')
+  async verifyLoginOtp(@Body() dto: VerifyLoginOtpDto, @Req() req: Request) {
+    return this.authService.verifyLoginOtp(dto, req);
+  }
 
   @Post('login')
   async login(@Body() dto: LoginDto, @Req() req: Request) {
@@ -46,26 +55,5 @@ export class AuthController {
   @Get('me')
   async me(@Req() req: AuthenticatedRequest) {
     return this.authService.me(req.user.sub);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post('request-email-verification')
-  async requestEmailVerification(@Req() req: AuthenticatedRequest) {
-    return this.authService.requestEmailVerification(req.user.sub);
-  }
-
-  @Post('verify-email')
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
-    return this.authService.verifyEmail(dto);
-  }
-
-  @Post('request-password-reset')
-  async requestPasswordReset(@Body() dto: RequestResetPasswordDto) {
-    return this.authService.requestPasswordReset(dto);
-  }
-
-  @Post('reset-password')
-  async resetPassword(@Body() dto: ResetPasswordDto) {
-    return this.authService.resetPassword(dto);
   }
 }

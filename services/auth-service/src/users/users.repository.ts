@@ -11,6 +11,7 @@ export class UsersRepository {
   async createUserWithAuth(data: {
     email: string;
     username: string;
+    phoneNumber: string;
     passwordHash: string;
     passwordSalt: string;
   }): Promise<UserWithAuth> {
@@ -18,6 +19,7 @@ export class UsersRepository {
       data: {
         email: data.email,
         username: data.username,
+        phoneNumber: data.phoneNumber,
         auth: {
           create: {
             passwordHash: data.passwordHash,

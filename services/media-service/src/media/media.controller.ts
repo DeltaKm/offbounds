@@ -31,7 +31,22 @@ export class MediaController {
 
   @Get('user/:userId')
   findByUser(@Param('userId') userId: string, @Query('limit') limit?: string) {
-    return this.mediaService.findByUser(userId, limit ? Number(limit) : 20);
+    return this.mediaService.findByUser(userId, { limit: limit ? Number(limit) : 20 });
+  }
+
+  @Get('feed')
+  findFeed(@Request() req: { user?: { sub: string } }, @Query('limit') limit?: string, @Query('before') before?: string) {
+    return this.mediaService.findFeed(req.user?.sub, { limit: limit ? Number(limit) : 20, before });
+  }
+
+  @Get('shorts')
+  findShortVideos(@Query('limit') limit?: string, @Query('before') before?: string) {
+    return this.mediaService.findShortVideos({ limit: limit ? Number(limit) : 20, before });
+  }
+
+  @Post(':id/unlock')
+  unlockMedia(@Request() req: { user: { sub: string } }, @Param('id') id: string) {
+    return this.mediaService.unlockMedia(id, req.user.sub);
   }
 
   @Delete(':id')

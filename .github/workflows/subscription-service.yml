@@ -1,0 +1,129 @@
+name: Deploy subscription-service
+
+on:
+  push:
+    paths:
+      - 'services/subscription-service/**'
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+  ECR_REPOSITORY: ${{ secrets.SUBSCRIPTION_ECR_REPOSITORY }}
+  CONTAINER_NAME: ${{ secrets.SUBSCRIPTION_CONTAINER_NAME }}
+  ECS_CLUSTER: ${{ secrets.SYSTEM_ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.SUBSCRIPTION_ECS_SERVICE }}
+  TASK_DEFINITION_FAMILY: ${{ secrets.SUBSCRIPTION_TASK_DEFINITION_FAMILY }}
+
+jobs:
+  deploy:
+    name: Build & Deploy subscription-service
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Record workflow start time
+        run: echo "WORKFLOW_START=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Capture commit metadata
+        run: |
+          echo "COMMIT_SUBJECT=$(git log -1 --pretty=%s)" >> $GITHUB_ENV
+          echo "COMMIT_AUTHOR=$(git log -1 --pretty=%an)" >> $GITHUB_ENV
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        env:
+          AWS_REGION: ${{ env.AWS_REGION }}
+        run: |
+          aws ecr get-login-password --region "$AWS_REGION" \
+            | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+
+      - name: Build Docker image
+        run: |
+          IMAGE_TAG=${GITHUB_SHA::7}
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+          docker build \
+            --file services/subscription-service/Dockerfile \
+            --tag "$IMAGE_URI" \
+            .
+
+      - name: Push image to ECR
+        run: |
+          docker push "$IMAGE_URI"
+
+      - name: Prepare new task definition revision
+        id: taskdef
+        run: |
+          IMAGE_URI="$IMAGE_URI"
+          aws ecs describe-task-definition \
+            --task-definition "$TASK_DEFINITION_FAMILY" \
+            --query 'taskDefinition' \
+            --output json > task-def.json
+
+          jq 'del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy, .deregisteredAt)' task-def.json > task-def.clean.json
+
+          jq --arg IMAGE "$IMAGE_URI" --arg NAME "$CONTAINER_NAME" \
+            '.containerDefinitions |= map(if .name == $NAME then .image = $IMAGE else . end)' \
+            task-def.clean.json > task-def-final.json
+
+          NEW_TASK_DEF_ARN=$(aws ecs register-task-definition --cli-input-json file://task-def-final.json --query 'taskDefinition.taskDefinitionArn' --output text)
+          echo "taskDefinitionArn=$NEW_TASK_DEF_ARN" >> "$GITHUB_OUTPUT"
+
+      - name: Update ECS service
+        run: |
+          aws ecs update-service \
+            --cluster "$ECS_CLUSTER" \
+            --service "$ECS_SERVICE" \
+            --task-definition "${{ steps.taskdef.outputs.taskDefinitionArn }}" \
+            --force-new-deployment
+
+      - name: Notify success on Telegram (optional)
+        if: ${{ success() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            if [ -z "$WORKFLOW_START" ]; then WORKFLOW_START=$(date +%s); fi
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - WORKFLOW_START))
+            MINUTES=$((DURATION / 60))
+            SECONDS=$((DURATION % 60))
+            IMAGE_INFO="$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG:-n/d}"
+            MESSAGE=$(printf "[SUCCESS] Deploy subscription-service riuscito\nRef: %s\nCommit: %s - %s\nImmagine: %s\nDurata: %dm %ds\nDettagli: https://github.com/%s/actions/runs/%s" "$GITHUB_REF" "${IMAGE_TAG:-n/d}" "${COMMIT_SUBJECT:-n/d}" "$IMAGE_INFO" "$MINUTES" "$SECONDS" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+            curl -s \
+              -X POST \
+              "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=$MESSAGE"
+          fi
+
+      - name: Notify failure on Telegram (optional)
+        if: ${{ failure() }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; then
+            if [ -z "$WORKFLOW_START" ]; then WORKFLOW_START=$(date +%s); fi
+            END_TIME=$(date +%s)
+            DURATION=$((END_TIME - WORKFLOW_START))
+            MINUTES=$((DURATION / 60))
+            SECONDS=$((DURATION % 60))
+            IMAGE_INFO="$ECR_REGISTRY/$ECR_REPOSITORY:${IMAGE_TAG:-non generata}"
+            MESSAGE=$(printf "[FAIL] Deploy subscription-service fallito\nRef: %s\nCommit: %s - %s\nImmagine: %s\nDurata: %dm %ds\nDettagli: https://github.com/%s/actions/runs/%s" "$GITHUB_REF" "${IMAGE_TAG:-n/d}" "${COMMIT_SUBJECT:-n/d}" "$IMAGE_INFO" "$MINUTES" "$SECONDS" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID")
+            curl -s \
+              -X POST \
+              "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+              --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+              --data-urlencode "text=$MESSAGE"
+          fi

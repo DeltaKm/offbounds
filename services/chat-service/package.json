@@ -21,6 +21,7 @@
     "@nestjs/websockets": "^10.3.6",
     "@offbounds/shared-config": "workspace:*",
     "@offbounds/shared-types": "workspace:*",
+    "@offbounds/wallet-service": "workspace:*",
     "@prisma/client": "5.16.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",

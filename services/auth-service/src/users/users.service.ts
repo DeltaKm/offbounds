@@ -5,7 +5,7 @@ import { UsersRepository, UserWithAuth } from './users.repository';
 export class UsersService {
   constructor(private readonly usersRepository: UsersRepository) {}
 
-  createUser(payload: { email: string; username: string; passwordHash: string; passwordSalt: string }) {
+  createUser(payload: { email: string; username: string; phoneNumber: string; passwordHash: string; passwordSalt: string }) {
     return this.usersRepository.createUserWithAuth(payload);
   }
 

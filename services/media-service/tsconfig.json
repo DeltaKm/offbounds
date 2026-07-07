@@ -9,7 +9,9 @@
     "strictPropertyInitialization": false,
     "paths": {
       "@/*": ["src/*"],
-      "@prisma/client": ["./node_modules/.prisma/client"]
+      "@prisma/client": ["./node_modules/.prisma/client"],
+      "@offbounds/wallet-service": ["../wallet-service/dist"],
+      "@offbounds/subscription-service": ["../subscription-service/dist"]
     }
   },
   "include": ["src/**/*"],

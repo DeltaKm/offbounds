@@ -7,10 +7,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   isConnected = false;
 
   constructor(private readonly config: ConfigService) {
-    super();
-    if (this.config.databaseUrl) {
-      process.env.DATABASE_URL = this.config.databaseUrl;
-    }
+    super({
+      datasources: {
+        db: {
+          url: config.databaseUrl,
+        },
+      },
+    });
   }
 
   async onModuleInit() {
