@@ -71,6 +71,20 @@ export class ChatController {
     return this.chatService.markRead(conversationId, req.user.sub);
   }
 
+  @Patch('messages/:id')
+  async editMessage(
+    @Req() req: AuthenticatedRequest,
+    @Param('id') messageId: string,
+    @Body() dto: { content: string },
+  ) {
+    return this.chatService.editMessage(messageId, req.user.sub, dto.content);
+  }
+
+  @Delete('messages/:id')
+  async deleteMessage(@Req() req: AuthenticatedRequest, @Param('id') messageId: string) {
+    return this.chatService.deleteMessage(messageId, req.user.sub);
+  }
+
   @Post('categories')
   async createCategory(
     @Req() req: AuthenticatedRequest,

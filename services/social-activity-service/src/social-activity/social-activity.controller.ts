@@ -101,4 +101,29 @@ export class SocialActivityController {
   ) {
     return this.socialActivityService.getComments(targetType, targetId, limit ? Number(limit) : 20);
   }
+
+  @Post('gift')
+  sendGift(
+    @Request() req: { user: { sub: string } },
+    @Body() dto: { recipientId: string; targetType: string; targetId: string; amount: number; message?: string },
+  ) {
+    return this.socialActivityService.sendGift(
+      req.user.sub,
+      dto.recipientId,
+      dto.targetType,
+      dto.targetId,
+      dto.amount,
+      dto.message,
+    );
+  }
+
+  @Get('gifts/received')
+  getGiftsReceived(@Request() req: { user: { sub: string } }, @Query('limit') limit?: string) {
+    return this.socialActivityService.getGiftsReceived(req.user.sub, limit ? Number(limit) : 20);
+  }
+
+  @Get('gifts/sent')
+  getGiftsSent(@Request() req: { user: { sub: string } }, @Query('limit') limit?: string) {
+    return this.socialActivityService.getGiftsSent(req.user.sub, limit ? Number(limit) : 20);
+  }
 }

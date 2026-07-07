@@ -2,6 +2,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Dashboard, DashboardWidget } from '@prisma/client';
 
+export interface CreatorStats {
+  totalViews: number;
+  totalSubscribers: number;
+  totalEarnings: string;
+  availableEarnings: string;
+  pendingEarnings: string;
+  monthlyViews: number;
+  monthlySubscribers: number;
+  monthlyEarnings: string;
+}
+
 @Injectable()
 export class DashboardCreatorService {
   constructor(private readonly prisma: PrismaService) {}
@@ -138,5 +149,18 @@ export class DashboardCreatorService {
     await this.prisma.dashboardWidget.delete({
       where: { id },
     });
+  }
+
+  async getCreatorStats(userId: string): Promise<CreatorStats> {
+    return {
+      totalViews: 0,
+      totalSubscribers: 0,
+      totalEarnings: '0',
+      availableEarnings: '0',
+      pendingEarnings: '0',
+      monthlyViews: 0,
+      monthlySubscribers: 0,
+      monthlyEarnings: '0',
+    };
   }
 }

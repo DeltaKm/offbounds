@@ -87,4 +87,9 @@ export class DashboardCreatorController {
   deleteWidget(@Request() req: { user: { sub: string } }, @Param('id') id: string) {
     return this.dashboardService.deleteWidget(id, req.user.sub);
   }
+
+  @Get('stats')
+  getCreatorStats(@Request() req: { user: { sub: string } }) {
+    return this.dashboardService.getCreatorStats(req.user.sub);
+  }
 }

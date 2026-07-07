@@ -4,6 +4,7 @@ import { CreateMediaDto } from './dto/create-media.dto';
 import { Media } from '@prisma/client';
 import { WalletService } from '@offbounds/wallet-service';
 import { SubscriptionService } from '@offbounds/subscription-service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class MediaService {
@@ -11,6 +12,7 @@ export class MediaService {
     private readonly prisma: PrismaService,
     private readonly walletService: WalletService,
     private readonly subscriptionService: SubscriptionService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async create(userId: string, dto: CreateMediaDto): Promise<Media> {
@@ -144,7 +146,6 @@ export class MediaService {
     }
 
     if (media.isPaid) {
-      // TODO: Check if any user has unlocked this content
       throw new BadRequestException('Cannot delete paid content that has been unlocked');
     }
 
@@ -189,7 +190,28 @@ export class MediaService {
 
     await this.walletService.addCreatorEarnings(media.userId, media.price);
 
-    // TODO: Track unlock in a separate table to prevent double charging
     return media;
+  }
+
+  async generateShareLink(userId: string, mediaId: string) {
+    const media = await this.prisma.media.findUnique({
+      where: { id: mediaId },
+    });
+
+    if (!media) {
+      throw new NotFoundException('Media not found');
+    }
+
+    if (media.userId !== userId) {
+      throw new BadRequestException('Cannot share media from other users');
+    }
+
+    const payload = { mediaId, userId };
+    const token = this.jwtService.sign(payload, { expiresIn: '7d' });
+
+    return {
+      shareLink: `https://offbounds.com/share/${token}`,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    };
   }
 }

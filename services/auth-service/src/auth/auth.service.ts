@@ -219,7 +219,6 @@ export class AuthService {
         throw new HttpException('Troppi tentativi di login. Riprova più tardi.', HttpStatus.TOO_MANY_REQUESTS);
       }
     } catch (error) {
-      // Redis failure should not block login; log and continue without rate limiting
       console.error('Redis rate limit error:', (error as Error).message);
     }
   }

@@ -112,3 +112,13 @@ model CreatorEarnings {
 
   @@map("creator_earnings")
 }
+
+model PlatformSettings {
+  id                   String   @id @default(uuid())
+  key                  String   @unique
+  value                String
+  description          String?
+  updatedAt            DateTime @updatedAt
+
+  @@map("platform_settings")
+}

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '../common/guards/auth.guard';
@@ -20,6 +21,33 @@ import { UpdateFeedDto } from './dto/update-feed.dto';
 @UseGuards(AuthGuard, DatabaseReadyGuard)
 export class FeedController {
   constructor(private readonly feedService: FeedService) {}
+
+  @Get('algorithmic')
+  getAlgorithmicFeed(
+    @User() user: RequestUser,
+    @Query('followingIds') followingIds?: string,
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    const followingArray = followingIds ? followingIds.split(',') : [];
+    return this.feedService.getAlgorithmicFeed(
+      user.id,
+      followingArray,
+      Number(limit) || 50,
+      cursor,
+    );
+  }
+
+  @Get('reels')
+  getReelsFeed(
+    @Query('limit') limit?: string,
+    @Query('cursor') cursor?: string,
+  ) {
+    return this.feedService.getReelsFeed(
+      Number(limit) || 50,
+      cursor,
+    );
+  }
 
   @Get()
   getFeed(@User() user: RequestUser) {

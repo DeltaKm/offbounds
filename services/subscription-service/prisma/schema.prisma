@@ -12,9 +12,9 @@ model Subscription {
   id             String   @id @default(cuid())
   subscriberId   String
   creatorId      String
-  tier           String   @default("standard") // 'standard', 'premium', 'vip'
-  price          Int      // Stars per month
-  status         String   @default("active") // 'active', 'cancelled', 'expired'
+  tier           String   @default("standard")
+  price          Int
+  status         String   @default("active")
   startDate      DateTime @default(now())
   endDate        DateTime
   autoRenew      Boolean  @default(true)
@@ -35,8 +35,8 @@ model SubscriptionTier {
   id          String   @id @default(cuid())
   creatorId   String
   name        String
-  price       Int      // Stars per month
-  benefits    Json?    // Array of benefit descriptions
+  price       Int
+  benefits    Json?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -44,4 +44,22 @@ model SubscriptionTier {
   @@unique([creatorId, name])
   @@index([creatorId])
   @@map("subscription_tiers")
+}
+
+model Media {
+  id          String   @id @default(uuid())
+  userId      String
+  category    String   @default("sfw")
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([category])
+  @@map("media")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  isAdultVerified Boolean  @default(false)
+
+  @@map("users")
 }

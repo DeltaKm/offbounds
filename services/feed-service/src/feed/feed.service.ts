@@ -40,4 +40,51 @@ export class FeedService {
   remove(authorId: string, id: string) {
     return this.getModel().findOneAndDelete({ _id: id, authorId }).lean().exec();
   }
+
+  async getAlgorithmicFeed(userId: string, followingIds: string[] = [], limit = 50, cursor?: string) {
+    const model = this.getModel();
+
+    const followingQuery = followingIds.length > 0
+      ? { authorId: { $in: followingIds }, isSafe: true }
+      : { authorId: { $exists: false } };
+
+    const followingPosts = await model
+      .find(followingQuery)
+      .sort({ createdAt: -1 })
+      .limit(Math.floor(limit * 0.7))
+      .lean()
+      .exec();
+
+    const safePostsQuery = followingIds.length > 0
+      ? { authorId: { $nin: followingIds }, isSafe: true }
+      : { isSafe: true };
+
+    const safePosts = await model
+      .find(safePostsQuery)
+      .sort({ createdAt: -1 })
+      .limit(Math.ceil(limit * 0.3))
+      .lean()
+      .exec();
+
+    const feed = [...followingPosts, ...safePosts].sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    return feed.slice(0, limit);
+  }
+
+  async getReelsFeed(limit = 50, cursor?: string) {
+    const model = this.getModel();
+
+    const query = cursor
+      ? { contentType: 'reel', duration: { $lte: 300 }, _id: { $lt: cursor } }
+      : { contentType: 'reel', duration: { $lte: 300 } };
+
+    return model
+      .find(query)
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .lean()
+      .exec();
+  }
 }

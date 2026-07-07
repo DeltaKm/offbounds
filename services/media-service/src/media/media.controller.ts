@@ -62,4 +62,9 @@ export class MediaController {
   ) {
     return this.mediaService.updateMetadata(req.user.sub, id, metadata);
   }
+
+  @Post(':id/share')
+  generateShareLink(@Request() req: { user: { sub: string } }, @Param('id') id: string) {
+    return this.mediaService.generateShareLink(req.user.sub, id);
+  }
 }

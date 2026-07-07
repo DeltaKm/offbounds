@@ -221,6 +221,62 @@ export class ChatService {
     return conversation;
   }
 
+  async editMessage(messageId: string, userId: string, newContent: string) {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('Cannot edit messages from other users');
+    }
+
+    if (message.deletedAt) {
+      throw new BadRequestException('Cannot edit deleted messages');
+    }
+
+    return this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        content: newContent,
+        editedAt: new Date(),
+      },
+    });
+  }
+
+  async deleteMessage(messageId: string, userId: string) {
+    const message = await this.prisma.message.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!message) {
+      throw new NotFoundException('Message not found');
+    }
+
+    if (message.senderId !== userId) {
+      throw new ForbiddenException('Cannot delete messages from other users');
+    }
+
+    if (message.deletedAt) {
+      throw new BadRequestException('Message already deleted');
+    }
+
+    if (message.isPpv && message.isUnlocked) {
+      throw new BadRequestException('Cannot delete PPV messages that have been unlocked');
+    }
+
+    return this.prisma.message.update({
+      where: { id: messageId },
+      data: {
+        content: '[Message deleted]',
+        deletedAt: new Date(),
+      },
+    });
+  }
+
   async createCategory(userId: string, name: string, color?: string, icon?: string) {
     const maxOrder = await this.prisma.chatCategory.findFirst({
       where: { userId },

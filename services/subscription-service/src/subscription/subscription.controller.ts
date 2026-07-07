@@ -51,7 +51,6 @@ export class SubscriptionController {
     return this.subscriptionService.getCreatorSubscriptions(creatorId);
   }
 
-  // Tier management (for creators)
   @Post('tiers')
   async createTier(
     @Request() req: { user: { sub: string } },

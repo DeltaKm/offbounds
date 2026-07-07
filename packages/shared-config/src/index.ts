@@ -41,7 +41,6 @@ const bootstrapEnvFiles = () => {
     }
   };
 
-  // Load files
   loadFile('.env');
   if (process.env.NODE_ENV) loadFile(`.env.${process.env.NODE_ENV}`, true);
   loadFile('.env.local', true);

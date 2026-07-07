@@ -10,7 +10,17 @@ export class SubscriptionService {
   ) {}
 
   async subscribe(subscriberId: string, creatorId: string, tierName = 'standard') {
-    // Check if already subscribed
+    const hasAdultContent = await this.creatorHasAdultContent(creatorId);
+
+    if (hasAdultContent) {
+      const subscriber = await this.prisma.user.findUnique({
+        where: { id: subscriberId },
+      });
+      if (!subscriber || !subscriber.isAdultVerified) {
+        throw new BadRequestException('Age verification required to subscribe to this creator');
+      }
+    }
+
     const existing = await this.prisma.subscription.findUnique({
       where: { subscriberId_creatorId: { subscriberId, creatorId } },
     });
@@ -19,18 +29,16 @@ export class SubscriptionService {
       throw new BadRequestException('Already subscribed to this creator');
     }
 
-    // Get or create subscription tier
     const tier = await this.prisma.subscriptionTier.findFirst({
       where: { creatorId, name: tierName, isActive: true },
     });
 
     if (!tier) {
-      // Create default tier if not exists
       await this.prisma.subscriptionTier.create({
         data: {
           creatorId,
           name: tierName,
-          price: 100, // Default 100 stars per month
+          price: 100,
         },
       });
     }
@@ -43,21 +51,17 @@ export class SubscriptionService {
       throw new NotFoundException('Subscription tier not found');
     }
 
-    // Deduct stars from subscriber
     try {
       await this.walletService.withdraw(subscriberId, 'STARS', finalTier.price);
     } catch (error) {
       throw new BadRequestException('Insufficient stars to subscribe');
     }
 
-    // Add creator earnings
     await this.walletService.addCreatorEarnings(creatorId, finalTier.price);
 
-    // Calculate end date (30 days from now)
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + 30);
 
-    // Create or update subscription
     const subscription = await this.prisma.subscription.upsert({
       where: { subscriberId_creatorId: { subscriberId, creatorId } },
       update: {
@@ -116,7 +120,6 @@ export class SubscriptionService {
       throw new NotFoundException('Subscription not found');
     }
 
-    // Check if expired
     if (subscription.endDate < new Date() && subscription.status === 'active') {
       await this.prisma.subscription.update({
         where: { id: subscription.id },
@@ -183,5 +186,15 @@ export class SubscriptionService {
     return this.prisma.subscriptionTier.delete({
       where: { id: tierId },
     });
+  }
+
+  private async creatorHasAdultContent(creatorId: string): Promise<boolean> {
+    const creatorMedia = await this.prisma.media.findFirst({
+      where: {
+        userId: creatorId,
+        category: { in: ['artistic', 'explicit'] },
+      },
+    });
+    return !!creatorMedia;
   }
 }

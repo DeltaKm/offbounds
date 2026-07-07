@@ -43,3 +43,18 @@ model Comment {
   @@index([targetType, targetId])
   @@index([userId])
 }
+
+model Gift {
+  id          String   @id @default(uuid())
+  senderId    String
+  recipientId String
+  targetType  String
+  targetId    String
+  amount      Int
+  message     String?
+  createdAt   DateTime @default(now())
+
+  @@index([senderId])
+  @@index([recipientId])
+  @@index([targetType, targetId])
+}

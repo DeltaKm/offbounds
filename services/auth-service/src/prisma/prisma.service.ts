@@ -30,7 +30,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     } catch (error) {
       console.error('Postgres NOT connected:', (error as Error).message);
       this.isConnected = false;
-      // Do not throw to keep the service running without Postgres
     }
   }
 

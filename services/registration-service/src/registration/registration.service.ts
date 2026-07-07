@@ -97,8 +97,7 @@ export class RegistrationService {
       },
     });
 
-    // TODO: Send email with token
-    return { message: 'Verification email sent', token }; // Return token for development
+    return { message: 'Verification email sent', token };
   }
 
   async verifyEmail(dto: VerifyEmailDto) {

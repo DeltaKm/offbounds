@@ -1,13 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { LikeDto } from './dto/like.dto';
 import { FollowDto } from './dto/follow.dto';
 import { CreateCommentDto } from './dto/comment.dto';
-import { Like, Follow, Comment } from '@prisma/client';
+import { Like, Follow, Comment, Gift } from '@prisma/client';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class SocialActivityService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly httpService: HttpService,
+  ) {}
 
   async like(userId: string, dto: LikeDto): Promise<Like> {
     return this.prisma.like.create({
@@ -160,6 +164,67 @@ export class SocialActivityService {
   async getComments(targetType: string, targetId: string, limit = 20): Promise<Comment[]> {
     return this.prisma.comment.findMany({
       where: { targetType, targetId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async sendGift(
+    senderId: string,
+    recipientId: string,
+    targetType: string,
+    targetId: string,
+    amount: number,
+    message?: string,
+  ): Promise<Gift> {
+    if (senderId === recipientId) {
+      throw new BadRequestException('Cannot send gift to yourself');
+    }
+
+    if (amount <= 0) {
+      throw new BadRequestException('Gift amount must be positive');
+    }
+
+    const walletServiceUrl = process.env.WALLET_SERVICE_URL || 'http://localhost:3001';
+
+    try {
+      await this.httpService.post(`${walletServiceUrl}/wallet/withdraw`, {
+        userId: senderId,
+        currency: 'STARS',
+        amount,
+      }).toPromise();
+    } catch (error) {
+      throw new BadRequestException('Insufficient stars to send gift');
+    }
+
+    await this.httpService.post(`${walletServiceUrl}/wallet/creator-earnings`, {
+      userId: recipientId,
+      amount,
+    }).toPromise();
+
+    return this.prisma.gift.create({
+      data: {
+        senderId,
+        recipientId,
+        targetType,
+        targetId,
+        amount,
+        message,
+      },
+    });
+  }
+
+  async getGiftsReceived(userId: string, limit = 20): Promise<Gift[]> {
+    return this.prisma.gift.findMany({
+      where: { recipientId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async getGiftsSent(userId: string, limit = 20): Promise<Gift[]> {
+    return this.prisma.gift.findMany({
+      where: { senderId: userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });

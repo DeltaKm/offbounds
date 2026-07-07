@@ -9,4 +9,3 @@ export class HealthController {
     };
   }
 }
-// test action
